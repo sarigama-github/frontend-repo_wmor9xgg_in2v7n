@@ -1,6 +1,10 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react'
 import { motion } from 'framer-motion'
 
+// Allow configuring the exact Spline scene via env, with a cat scene as default
+const CAT_SCENE_URL = import.meta.env.VITE_SPLINE_CAT_URL ||
+  'https://prod.spline.design/4rC7tS3o8pQ5p4b7/scene.splinecode' // fallback: public 3D cat scene
+
 // Lazy-load Spline so failures don't crash the whole app
 const LazySpline = lazy(() => import('@splinetool/react-spline'))
 
@@ -53,7 +57,7 @@ export default function ThreeCatHero() {
           <Suspense fallback={<SplineFallback />}>
             <div className="absolute inset-0 -z-10">
               <LazySpline
-                scene="https://prod.spline.design/1Gm7sPFSr2YoU3aH/scene.splinecode"
+                scene={CAT_SCENE_URL}
                 className="h-full w-full"
               />
             </div>
@@ -70,13 +74,13 @@ export default function ThreeCatHero() {
           className="max-w-xl"
         >
           <div className="inline-flex items-center gap-2 rounded-full bg-white/70 backdrop-blur px-3 py-1 text-sm text-rose-600 ring-1 ring-rose-200">
-            🐾 Now in 3D
+            🐾 Live 3D Cat
           </div>
           <h1 className="mt-4 text-4xl md:text-6xl font-extrabold tracking-tight text-gray-900 drop-shadow-sm">
             Purrfect 3D Catverse
           </h1>
           <p className="mt-4 text-lg md:text-xl text-gray-700">
-            Explore an interactive 3D cat scene and scroll down for the gallery. Spin, pan, and enjoy the vibes.
+            Meet our 3D cat in the hero. Drag to orbit, right-click to pan, and scroll to zoom. Then explore the gallery below.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <a href="#gallery" className="px-5 py-3 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 transition">Explore Gallery</a>
