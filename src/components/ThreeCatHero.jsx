@@ -1,21 +1,65 @@
-import Spline from '@splinetool/react-spline'
+import React, { useEffect, useState, Suspense, lazy } from 'react'
 import { motion } from 'framer-motion'
 
+// Lazy-load Spline so failures don't crash the whole app
+const LazySpline = lazy(() => import('@splinetool/react-spline'))
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(err) {
+    // eslint-disable-next-line no-console
+    console.error('Spline crashed:', err)
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+    return this.props.children
+  }
+}
+
+function SplineFallback() {
+  return (
+    <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10" />
+    </div>
+  )
+}
+
 export default function ThreeCatHero() {
+  const [isClient, setIsClient] = useState(false)
+  const [showSpline, setShowSpline] = useState(false)
+
+  // Ensure we only render Spline on client, and give it a moment to mount
+  useEffect(() => {
+    setIsClient(true)
+    const t = setTimeout(() => setShowSpline(true), 200) // small delay avoids layout thrash
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <section className="relative h-[80vh] min-h-[560px] w-full overflow-hidden">
-      {/* 3D Scene */}
-      <div className="absolute inset-0 -z-10">
-        {/* Fallback gradient behind the Spline canvas */}
-        <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50" />
-        {/* Spline 3D scene with a cat model (public demo scene) */}
-        <Spline
-          scene="https://prod.spline.design/1Gm7sPFSr2YoU3aH/scene.splinecode"
-          className="h-full w-full"
-        />
-        {/* soft vignette */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10" />
-      </div>
+      {/* 3D Scene (with safe fallbacks) */}
+      <SplineFallback />
+      {isClient && showSpline && (
+        <ErrorBoundary fallback={<SplineFallback />}>
+          <Suspense fallback={<SplineFallback />}>
+            <div className="absolute inset-0 -z-10">
+              <LazySpline
+                scene="https://prod.spline.design/1Gm7sPFSr2YoU3aH/scene.splinecode"
+                className="h-full w-full"
+              />
+            </div>
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       {/* Overlay content */}
       <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-center px-6">
